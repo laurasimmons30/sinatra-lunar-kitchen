@@ -1,4 +1,5 @@
 require_relative 'ingredient'
+require 'pry'
 
 def db_connection
   begin
@@ -37,16 +38,19 @@ class Recipe
   def self.find(id)
     param_id = [id]
     result = db_connection do |conn|
-      conn.exec("SELECT recipes.id, recipes.name, recipes.description, ingredients.name FROM recipes                                                               
+      conn.exec("SELECT recipes.id, recipes.name AS recipe_name, recipes.description, recipes.instructions, ingredients.name FROM recipes                                                               
                 JOIN ingredients ON recipes.id = ingredients.recipe_id                                                                                                      
                 WHERE recipes.id = $1;", param_id)
             end
-    binding.pry
+    ingredient_array = []
+    result.each do |ingredient|
+      ingredient_array << Ingredient.new(ingredient["name"])
+    end 
     Recipe.new(result[0]["id"],
-               result[0]["name"],
+               result[0]["recipe_name"],
                result[0]["description"],
                result[0]["instructions"],
-               result[0]["ingredients"])
+               ingredient_array)
   end
 end
 
